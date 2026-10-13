@@ -7,6 +7,8 @@ Keep this file up to date when you learn a new project fact, brand decision or p
 - Single user, self-control: `AuthorizationCenter.requestAuthorization(for: .individual)`.
 - Features: daily app limits, downtime schedules, usage dashboard, and an adult website filter that is **always on**.
 - Adult filter unlock: PIN, then a **10 minute countdown**, then off for **5, 10, 15 or 30 minutes only** (nothing longer), then it turns back on by itself. Cancelling or relocking early never needs the PIN.
+- Daily limits: presets (15 min to 2 hr) or a custom number of minutes, **1 to 120 only, never over 2 hours** (`BloomConfig.dailyLimitRange`, enforced in the editor, `AppModel.save` and `AppLimit.clampedMinutes`).
+- Unlocking is only possible inside the Bloom app. The block screen (shield) has a Close button and nothing else.
 - Limits and downtime: the PIN unlocks immediately for 15, 30 or 60 minutes. Editing, deleting or pausing an existing rule needs the PIN. Creating rules or making them stricter does not.
 - The values live in `Shared/Core/BloomConfig.swift`.
 
@@ -16,7 +18,6 @@ Keep this file up to date when you learn a new project fact, brand decision or p
 - One ManagedSettingsStore per rule (`limit.<uuid>`, `downtime.<uuid>`), plus `web` for the content filter.
 - DeviceActivity intervals must be at least 15 minutes, so use `Scheduler.scheduleWakeUp` (end warning trick) for shorter timers. Apps are limited to 20 monitored activities.
 - The monitor and shield extensions have tight memory limits. They compile only `Shared/Core` (+ `Shared/Palette` for the shield). Never import SwiftUI there.
-- Unlocking from the shield happens through a notification plus `pendingUnlockRequestAt`, because extensions can't open the app.
 
 ## Brand (from the Bloom brand guidelines PDF)
 - Name: **Bloom**. Mark: white line-art tulip on a lavender rounded square (`BloomMark` asset, `AppIcon`).

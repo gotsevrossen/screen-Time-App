@@ -43,7 +43,7 @@ enum Enforcer {
         for limit in data.limits where limit.isEnabled && data.limitsReached[limit.storeKey] == today {
             blocks.append(ActiveBlock(
                 storeKey: limit.storeKey, kind: .limit, name: limit.name,
-                detail: "Daily limit of \(DurationText.minutes(limit.minutesPerDay)) reached",
+                detail: "Daily limit of \(DurationText.minutes(limit.clampedMinutes)) reached",
                 selection: limit.selection, unlockedUntil: data.unlockGrants[limit.storeKey]))
         }
         for downtime in data.downtimes where downtime.isActive(at: now) {

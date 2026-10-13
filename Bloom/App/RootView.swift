@@ -21,8 +21,6 @@ struct RootView: View {
 }
 
 private struct MainTabs: View {
-    @EnvironmentObject private var model: AppModel
-
     var body: some View {
         TabView {
             TodayView()
@@ -35,9 +33,6 @@ private struct MainTabs: View {
                 .tabItem { Label("Web", systemImage: "globe") }
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gearshape") }
-        }
-        .sheet(isPresented: $model.showUnlockCenter) {
-            UnlockCenterView()
         }
     }
 }

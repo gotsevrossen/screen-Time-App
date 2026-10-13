@@ -114,29 +114,3 @@ private struct DurationChooser: View {
         .background(Color.bloomCanvas.ignoresSafeArea())
     }
 }
-
-/// Opened from the block screen's "Unlock with PIN" notification.
-struct UnlockCenterView: View {
-    @EnvironmentObject private var model: AppModel
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            BloomPage(title: "Unlock", subtitle: "Choose what you'd like more time with.") {
-                if model.activeBlocks.isEmpty {
-                    BloomCard(style: .cream) {
-                        Text("Nothing is blocked").font(.bloomHeading(20))
-                        Text("Any limit or downtime that's on right now will show up here.")
-                            .font(.bloomBody(.subheadline))
-                    }
-                }
-                ForEach(model.activeBlocks) { block in
-                    ActiveBlockRow(block: block)
-                }
-            }
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
-            }
-        }
-    }
-}

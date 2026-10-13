@@ -12,7 +12,6 @@ struct BloomApp: App {
             RootView()
                 .environmentObject(model)
                 .tint(.bloomLavenderInk)
-                .onAppear { appDelegate.model = model }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active { model.refresh() }
                 }
@@ -21,8 +20,6 @@ struct BloomApp: App {
 }
 
 final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
-    weak var model: AppModel?
-
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         UNUserNotificationCenter.current().delegate = self
@@ -32,11 +29,5 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
         [.banner, .sound]
-    }
-
-    func userNotificationCenter(_ center: UNUserNotificationCenter,
-                                didReceive response: UNNotificationResponse) async {
-        guard response.notification.request.content.userInfo["bloom.action"] as? String == "unlock" else { return }
-        await MainActor.run { model?.showUnlockCenter = true }
     }
 }

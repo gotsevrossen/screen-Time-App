@@ -56,7 +56,7 @@ private struct LimitCard: View {
                     StatusPill(text: "Used up today")
                 }
             }
-            Text("\(DurationText.minutes(limit.minutesPerDay)) a day")
+            Text("\(DurationText.minutes(limit.clampedMinutes)) a day")
                 .font(.bloomBody(.subheadline))
                 .foregroundStyle(Color.bloomInkSecondary)
             SelectionIcons(selection: limit.selection)
@@ -72,8 +72,20 @@ struct LimitEditorView: View {
     let isNew: Bool
     @State private var showPicker = false
     @State private var confirmDelete = false
+    @State private var customText = ""
+    @FocusState private var customFocused: Bool
 
     private let presets = [15, 30, 45, 60, 90, 120]
+    private let range = BloomConfig.dailyLimitRange
+
+    /// Why the typed custom value can't be used, or nil when it's fine (or empty).
+    private var customError: String? {
+        guard !customText.isEmpty else { return nil }
+        guard let value = Int(customText) else { return "Use whole minutes, like 25." }
+        if value > range.upperBound { return "Daily limits can be 2 hours (120 min) at most." }
+        if value < range.lowerBound { return "Set at least 1 minute." }
+        return nil
+    }
 
     var body: some View {
         NavigationStack {
@@ -107,13 +119,40 @@ struct LimitEditorView: View {
                         .contentTransition(.numericText())
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
                         ForEach(presets, id: \.self) { minutes in
-                            BloomChip(title: DurationText.minutes(minutes), isSelected: limit.minutesPerDay == minutes) {
+                            BloomChip(title: DurationText.minutes(minutes),
+                                      isSelected: customText.isEmpty && limit.minutesPerDay == minutes) {
+                                customText = ""
+                                customFocused = false
                                 withAnimation { limit.minutesPerDay = minutes }
                             }
                         }
                     }
-                    Stepper("Fine-tune by 5 minutes", value: $limit.minutesPerDay, in: 5...720, step: 5)
-                        .font(.bloomBody(.subheadline))
+
+                    HStack(spacing: 10) {
+                        TextField("Custom", text: $customText)
+                            .keyboardType(.numberPad)
+                            .focused($customFocused)
+                            .font(.bloomBody())
+                        Text("min").font(.bloomBody()).foregroundStyle(Color.bloomInkSecondary)
+                    }
+                    .padding(.horizontal, 18)
+                    .frame(minHeight: 56)
+                    .background(Color.bloomSurface, in: RoundedRectangle(cornerRadius: BloomRadius.control, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: BloomRadius.control, style: .continuous)
+                            .strokeBorder(customError == nil ? Color.clear : Color.bloomLavenderInk, lineWidth: 1.5))
+                    .accessibilityLabel("Custom minutes per day")
+                    .onChange(of: customText) { _, new in
+                        let digits = String(new.filter(\.isNumber).prefix(3))
+                        if digits != new { customText = digits; return }
+                        if let value = Int(digits), range.contains(value) {
+                            withAnimation { limit.minutesPerDay = value }
+                        }
+                    }
+
+                    Text(customError ?? "Any amount up to 2 hours a day.")
+                        .font(.bloomBody(.caption))
+                        .foregroundStyle(customError == nil ? Color.bloomInkSecondary : Color.bloomLavenderInk)
 
                     if !isNew {
                         Toggle("Limit is on", isOn: $limit.isEnabled)
@@ -126,7 +165,9 @@ struct LimitEditorView: View {
                         dismiss()
                     }
                     .buttonStyle(.bloomPrimary)
-                    .disabled(limit.name.trimmingCharacters(in: .whitespaces).isEmpty || limit.selection.isEmpty)
+                    .disabled(limit.name.trimmingCharacters(in: .whitespaces).isEmpty
+                              || limit.selection.isEmpty
+                              || customError != nil)
                     .padding(.top, 12)
 
                     if !isNew {
@@ -143,6 +184,16 @@ struct LimitEditorView: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
             }
             .familyActivityPicker(isPresented: $showPicker, selection: $limit.selection)
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { customFocused = false }
+                }
+            }
+            .onAppear {
+                limit.minutesPerDay = limit.clampedMinutes
+                if !presets.contains(limit.minutesPerDay) { customText = "\(limit.minutesPerDay)" }
+            }
             .confirmationDialog("Delete \(limit.name)?", isPresented: $confirmDelete, titleVisibility: .visible) {
                 Button("Delete", role: .destructive) {
                     model.deleteLimit(limit)

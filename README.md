@@ -3,11 +3,12 @@
 A Screen Time app for iPhone (iOS 17+), built with SwiftUI and Apple's Screen Time frameworks
 (FamilyControls, ManagedSettings, DeviceActivity).
 
-- **Daily limits:** choose apps, categories or sites and give them a daily time budget. When it runs out, they're blocked until midnight.
+- **Daily limits:** choose apps, categories or sites and give them a daily time budget: a preset or any custom number of minutes, up to **2 hours** at most. When it runs out, they're blocked until midnight.
 - **Downtime:** block chosen apps during set hours, on chosen days (overnight windows work too).
 - **Adult website filter, always on:** uses Apple's built-in adult content filter, the same one Screen Time uses, plus any sites you add yourself.
   Turning it off temporarily needs your **PIN**, which starts a **10 minute countdown**. After that the filter is off for **5, 10, 15 or 30 minutes** (your choice) and then turns itself back on. You can cancel the countdown at any time.
 - **PIN:** any change that could loosen a rule (editing, deleting, unlocking) needs a 4-digit PIN. Making things stricter never does.
+- **Unlocking only happens in Bloom.** The screen over a blocked app has just a Close button, with no way to unlock from there.
 - **Usage dashboard:** screen time today or this week, pickups, and your most used apps.
 
 ## Build it
@@ -37,7 +38,7 @@ To ship through TestFlight or the App Store, request the distribution entitlemen
 | `Bloom` | The SwiftUI app: onboarding, Today, Limits, Downtime, Web, Settings. |
 | `BloomMonitor` | DeviceActivity monitor. iOS wakes it when a limit is used up, a downtime starts or ends, or an unlock timer finishes, even when Bloom isn't running. |
 | `BloomShieldConfiguration` | Draws the branded screen shown over a blocked app or site. |
-| `BloomShieldAction` | Handles that screen's buttons. "Unlock with PIN" sends a notification that opens Bloom's unlock screen (extensions can't open apps directly). |
+| `BloomShieldAction` | Handles that screen's Close button. There is deliberately no unlock option on the block screen. |
 | `BloomReport` | DeviceActivityReport extension that draws the usage dashboard. Apple only gives usage data to this extension, never to the app itself. |
 
 `Shared/Core` holds the data model and enforcement logic used by every target:

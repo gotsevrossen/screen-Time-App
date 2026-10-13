@@ -11,7 +11,6 @@ final class AppModel: ObservableObject {
     @Published var hasOnboarded: Bool {
         didSet { UserDefaults.standard.set(hasOnboarded, forKey: "bloom.hasOnboarded") }
     }
-    @Published var showUnlockCenter = false
     @Published var errorMessage: String?
 
     private var cancellables = Set<AnyCancellable>()
@@ -34,10 +33,6 @@ final class AppModel: ObservableObject {
     func refresh() {
         Enforcer.reconcile()
         data = SharedStore.load()
-        if let requested = data.pendingUnlockRequestAt {
-            if Date().timeIntervalSince(requested) < 10 * 60 { showUnlockCenter = true }
-            data = SharedStore.update { $0.pendingUnlockRequestAt = nil }
-        }
     }
 
     func requestAuthorization() async {
@@ -61,6 +56,8 @@ final class AppModel: ObservableObject {
     // MARK: - Limits
 
     func save(_ limit: AppLimit) {
+        var limit = limit
+        limit.minutesPerDay = limit.clampedMinutes
         mutate { data in
             if let index = data.limits.firstIndex(where: { $0.id == limit.id }) {
                 data.limits[index] = limit

@@ -52,7 +52,8 @@ final class ShieldConfigurationExtension: ShieldConfigurationDataSource {
             subtitle: .init(text: subtitle, color: BloomPalette.onAccent.withAlphaComponent(0.75)),
             primaryButtonLabel: .init(text: "Close", color: .white),
             primaryButtonBackgroundColor: BloomPalette.onAccent,
-            secondaryButtonLabel: .init(text: "Unlock with PIN", color: BloomPalette.onAccent))
+            // No unlock button: unlocking only happens inside the Bloom app.
+            secondaryButtonLabel: nil)
     }
 
     private func reason(app: ApplicationToken?, category: ActivityCategoryToken?, web: WebDomainToken?) -> Reason {
@@ -66,7 +67,7 @@ final class ShieldConfigurationExtension: ShieldConfigurationDataSource {
             guard matches else { continue }
             switch block.kind {
             case .limit:
-                if let limit = data.limit(forStoreKey: block.storeKey) { return .limit(minutes: limit.minutesPerDay) }
+                if let limit = data.limit(forStoreKey: block.storeKey) { return .limit(minutes: limit.clampedMinutes) }
             case .downtime:
                 if let downtime = data.downtime(forStoreKey: block.storeKey) { return .downtime(until: downtime.end.formatted) }
             }

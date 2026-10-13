@@ -34,7 +34,7 @@ final class BloomMonitorExtension: DeviceActivityMonitor {
 
         if let limit = data.limit(forStoreKey: key) {
             notify(title: "Time's up for \(limit.name)",
-                   body: "You've used your \(DurationText.minutes(limit.minutesPerDay)) for today. See you tomorrow.")
+                   body: "You've used your \(DurationText.minutes(limit.clampedMinutes)) for today. See you tomorrow.")
         }
     }
 

@@ -37,7 +37,7 @@ enum Scheduler {
             planned[limit.storeKey] = Planned(
                 schedule: schedule,
                 events: [DeviceActivityEvent.Name(BloomKeys.thresholdEvent): thresholdEvent(for: limit)],
-                signature: signature(limit.selection, extra: "\(limit.minutesPerDay)"))
+                signature: signature(limit.selection, extra: "\(limit.clampedMinutes)"))
         }
 
         for downtime in data.downtimes where downtime.isEnabled && !downtime.weekdays.isEmpty {
@@ -114,7 +114,7 @@ enum Scheduler {
     // MARK: - Private
 
     private static func thresholdEvent(for limit: AppLimit) -> DeviceActivityEvent {
-        let threshold = DateComponents(minute: limit.minutesPerDay)
+        let threshold = DateComponents(minute: limit.clampedMinutes)
         if #available(iOS 17.4, *) {
             // Count usage from earlier today too, so a limit created at 3pm still knows about the morning.
             return DeviceActivityEvent(

@@ -11,6 +11,8 @@ enum BloomConfig {
     static let webUnlockCountdownMinutes = 10
     /// The only durations the adult filter may be unlocked for.
     static let webUnlockDurations = [5, 10, 15, 30]
+    /// Daily limits can be any whole number of minutes in this range, never more than 2 hours.
+    static let dailyLimitRange = 1...120
     /// Durations offered when unlocking an app limit or downtime with the PIN.
     static let ruleUnlockDurations = [15, 30, 60]
     /// Apple caps each app at 20 monitored activities.

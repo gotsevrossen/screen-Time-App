@@ -38,6 +38,11 @@ struct AppLimit: Codable, Identifiable {
     var isEnabled = true
 
     var storeKey: String { BloomKeys.limitPrefix + id.uuidString }
+
+    /// The daily budget, kept inside the allowed range even if stored data says otherwise.
+    var clampedMinutes: Int {
+        min(max(minutesPerDay, BloomConfig.dailyLimitRange.lowerBound), BloomConfig.dailyLimitRange.upperBound)
+    }
 }
 
 /// A recurring window when a set of apps is blocked.
@@ -111,8 +116,6 @@ struct BloomData: Codable {
     var limitsReached: [String: String] = [:]
     /// storeKey -> time a PIN unlock expires.
     var unlockGrants: [String: Date] = [:]
-    /// Set by the shield's "Unlock with PIN" button so the app opens straight to unlocking.
-    var pendingUnlockRequestAt: Date?
 
     init() {}
 
@@ -123,7 +126,6 @@ struct BloomData: Codable {
         web = try c.decodeIfPresent(WebFilterState.self, forKey: .web) ?? WebFilterState()
         limitsReached = try c.decodeIfPresent([String: String].self, forKey: .limitsReached) ?? [:]
         unlockGrants = try c.decodeIfPresent([String: Date].self, forKey: .unlockGrants) ?? [:]
-        pendingUnlockRequestAt = try c.decodeIfPresent(Date.self, forKey: .pendingUnlockRequestAt)
     }
 
     func limit(forStoreKey key: String) -> AppLimit? { limits.first { $0.storeKey == key } }
