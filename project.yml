@@ -1,0 +1,148 @@
+# Generate the Xcode project with:  brew install xcodegen && xcodegen generate
+name: Bloom
+
+options:
+  bundleIdPrefix: com.gotsevrossen
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    # Change these three to your own values. Everything else reads from them.
+    DEVELOPMENT_TEAM: ""
+    BLOOM_BUNDLE_ID: com.gotsevrossen.bloom
+    BLOOM_APP_GROUP: group.com.gotsevrossen.bloom
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Automatic
+    TARGETED_DEVICE_FAMILY: "1"
+
+targets:
+  Bloom:
+    type: application
+    platform: iOS
+    sources:
+      - Bloom
+      - Shared
+      - path: Fonts
+        buildPhase: resources
+    info:
+      path: Bloom/Info.plist
+      properties:
+        CFBundleDisplayName: Bloom
+        BloomAppGroup: $(BLOOM_APP_GROUP)
+        UILaunchScreen:
+          UIColorName: AccentColor
+        UIAppFonts: [Poppins-SemiBold.ttf, Poppins-Medium.ttf]
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIApplicationSupportsIndirectInputEvents: true
+    entitlements:
+      path: Bloom/Bloom.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups: [$(BLOOM_APP_GROUP)]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(BLOOM_BUNDLE_ID)
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+    dependencies:
+      - target: BloomMonitor
+      - target: BloomShieldConfiguration
+      - target: BloomShieldAction
+      - target: BloomReport
+
+  # Runs in the background: applies blocks when limits are hit, schedules start/end, unlock timers expire.
+  BloomMonitor:
+    type: app-extension
+    platform: iOS
+    sources: [BloomMonitor, Shared/Core]
+    info:
+      path: BloomMonitor/Info.plist
+      properties:
+        CFBundleDisplayName: Bloom Monitor
+        BloomAppGroup: $(BLOOM_APP_GROUP)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.deviceactivity.monitor-extension
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).BloomMonitorExtension
+    entitlements:
+      path: BloomMonitor/BloomMonitor.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups: [$(BLOOM_APP_GROUP)]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(BLOOM_BUNDLE_ID).monitor
+
+  # Draws the branded "this app is blocked" screen.
+  BloomShieldConfiguration:
+    type: app-extension
+    platform: iOS
+    sources: [BloomShieldConfiguration, Shared/Core, Shared/Palette]
+    info:
+      path: BloomShieldConfiguration/Info.plist
+      properties:
+        CFBundleDisplayName: Bloom Shield
+        BloomAppGroup: $(BLOOM_APP_GROUP)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.ManagedSettingsUI.shield-configuration-service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldConfigurationExtension
+    entitlements:
+      path: BloomShieldConfiguration/BloomShieldConfiguration.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups: [$(BLOOM_APP_GROUP)]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(BLOOM_BUNDLE_ID).shield-configuration
+
+  # Handles the buttons on the block screen.
+  BloomShieldAction:
+    type: app-extension
+    platform: iOS
+    sources: [BloomShieldAction, Shared/Core]
+    info:
+      path: BloomShieldAction/Info.plist
+      properties:
+        CFBundleDisplayName: Bloom Shield Action
+        BloomAppGroup: $(BLOOM_APP_GROUP)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.ManagedSettings.shield-action-service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldActionExtension
+    entitlements:
+      path: BloomShieldAction/BloomShieldAction.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups: [$(BLOOM_APP_GROUP)]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(BLOOM_BUNDLE_ID).shield-action
+
+  # Renders the usage dashboard (Apple only exposes usage data inside this extension).
+  BloomReport:
+    type: extensionkit-extension
+    platform: iOS
+    sources:
+      - BloomReport
+      - Shared
+      - path: Fonts
+        buildPhase: resources
+    info:
+      path: BloomReport/Info.plist
+      properties:
+        CFBundleDisplayName: Bloom Report
+        BloomAppGroup: $(BLOOM_APP_GROUP)
+        UIAppFonts: [Poppins-SemiBold.ttf, Poppins-Medium.ttf]
+        EXAppExtensionAttributes:
+          EXExtensionPointIdentifier: com.apple.deviceactivityui.report-extension
+    entitlements:
+      path: BloomReport/BloomReport.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups: [$(BLOOM_APP_GROUP)]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(BLOOM_BUNDLE_ID).report
